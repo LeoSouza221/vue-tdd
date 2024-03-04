@@ -1,8 +1,60 @@
 vi.mock('axios');
-import { render, screen } from '@testing-library/vue';
+import { render, screen, waitFor } from '@testing-library/vue';
 import userEvent from '@testing-library/user-event';
 import SignUp from './SignUp.vue';
-import axios from 'axios';
+// import axios from 'axios';
+import { setupServer } from 'msw/node';
+import { HttpResponse, http } from 'msw';
+import { afterAll, beforeAll } from 'vitest';
+
+interface UserForm {
+  username: string;
+  email: string;
+  password: string;
+}
+
+let requestBody: UserForm;
+let counter = 0;
+const server = setupServer(
+  http.post('/api/v1/users', async ({ request }) => {
+    requestBody = (await request.json()) as UserForm;
+    console.log('tesadssssssssssssssssssssssss', request);
+    counter += 1;
+    return HttpResponse.json({});
+  }),
+);
+
+beforeEach(() => {
+  counter = 0;
+});
+
+beforeAll(() => server.listen());
+
+afterAll(() => server.close());
+
+const setup = async () => {
+  const user = userEvent.setup();
+
+  const result = render(SignUp);
+  const usernameInput = screen.getByLabelText('Username');
+  const emailInput = screen.getByLabelText('Email');
+  const passwordInput = screen.getByLabelText('Password');
+  const confirmPasswordInput = screen.getByLabelText('Confirm Password');
+  const button = screen.getByRole('button', { name: 'Sign up' });
+
+  await user.type(usernameInput, 'username');
+  await user.type(emailInput, 'email@email.com');
+  await user.type(passwordInput, '123password');
+  await user.type(confirmPasswordInput, '123password');
+
+  return {
+    ...result,
+    user,
+    elements: {
+      button,
+    },
+  };
+};
 
 describe('Sign Up', () => {
   it('has Sign Up header', () => {
@@ -73,27 +125,35 @@ describe('Sign Up', () => {
   });
 
   describe('when user submits form', () => {
-    it('sends username, email, password to the backend', async () => {
-      const user = userEvent.setup();
-
-      render(SignUp);
-      const usernameInput = screen.getByLabelText('Username');
-      const emailInput = screen.getByLabelText('Email');
-      const passwordInput = screen.getByLabelText('Password');
-      const confirmPasswordInput = screen.getByLabelText('Confirm Password');
-      const button = screen.getByRole('button', { name: 'Sign up' });
-
-      await user.type(usernameInput, 'username');
-      await user.type(emailInput, 'email@email.com');
-      await user.type(passwordInput, '123password');
-      await user.type(confirmPasswordInput, '123password');
+    it.only('sends username, email, password to the backend', async () => {
+      const {
+        user,
+        elements: { button },
+      } = await setup();
 
       await user.click(button);
 
-      expect(axios.post).toHaveBeenCalledWith('api/v1/users', {
-        username: 'username',
-        email: 'email@email.com',
-        password: '123password',
+      await waitFor(() => {
+        expect(requestBody).toEqual({
+          username: 'username',
+          email: 'email@email.com',
+          password: '123password',
+        });
+      });
+    });
+
+    describe('when there is an ongoing api call', () => {
+      it('does not allow clicking the button', async () => {
+        const {
+          user,
+          elements: { button },
+        } = await setup();
+        await user.click(button);
+        await user.click(button);
+
+        await waitFor(() => {
+          expect(counter).toBe(1);
+        });
       });
     });
   });

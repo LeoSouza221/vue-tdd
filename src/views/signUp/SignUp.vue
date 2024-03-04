@@ -23,7 +23,7 @@
           />
         </div>
 
-        <div>
+        <div class="mb-3">
           <label
             class="form-label"
             for="email"
@@ -37,7 +37,7 @@
           />
         </div>
 
-        <div>
+        <div class="mb-3">
           <label
             class="form-label"
             for="password"
@@ -96,6 +96,7 @@ const isDisabled = computed(() => {
 const submit = () => {
   const { confirmPassword, ...body } = form;
 
+  console.log('teste', body);
   axios.post('api/v1/users', body);
 };
 </script>
