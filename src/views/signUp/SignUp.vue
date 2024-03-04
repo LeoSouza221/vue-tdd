@@ -2,7 +2,7 @@
   <div class="col-lg-6 offset-lg-3 col-md-8 offset-lg-2">
     <form
       class="card"
-      @submit="submit"
+      @submit.prevent="submit"
     >
       <div class="card-header text-center">
         <h1>Sign Up</h1>
@@ -67,11 +67,12 @@
 
         <div class="text-center">
           <button
+            :disabled="isDisabled || apiRequest"
             class="btn btn-primary"
-            :disabled="isDisabled"
             type="submit"
-            >Sign up</button
           >
+            Sign up
+          </button>
         </div>
       </div>
     </form>
@@ -80,8 +81,9 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
+const apiRequest = ref(false);
 const form = reactive({
   password: '',
   confirmPassword: '',
@@ -94,9 +96,9 @@ const isDisabled = computed(() => {
 });
 
 const submit = () => {
+  apiRequest.value = true;
   const { confirmPassword, ...body } = form;
 
-  console.log('teste', body);
-  axios.post('api/v1/users', body);
+  axios.post('/api/v1/users', body);
 };
 </script>

@@ -1,4 +1,3 @@
-vi.mock('axios');
 import { render, screen, waitFor } from '@testing-library/vue';
 import userEvent from '@testing-library/user-event';
 import SignUp from './SignUp.vue';
@@ -18,7 +17,6 @@ let counter = 0;
 const server = setupServer(
   http.post('/api/v1/users', async ({ request }) => {
     requestBody = (await request.json()) as UserForm;
-    console.log('tesadssssssssssssssssssssssss', request);
     counter += 1;
     return HttpResponse.json({});
   }),
@@ -44,8 +42,8 @@ const setup = async () => {
 
   await user.type(usernameInput, 'username');
   await user.type(emailInput, 'email@email.com');
-  await user.type(passwordInput, '123password');
-  await user.type(confirmPasswordInput, '123password');
+  await user.type(passwordInput, '123Password');
+  await user.type(confirmPasswordInput, '123Password');
 
   return {
     ...result,
@@ -125,19 +123,18 @@ describe('Sign Up', () => {
   });
 
   describe('when user submits form', () => {
-    it.only('sends username, email, password to the backend', async () => {
+    it('sends username, email, password to the backend', async () => {
       const {
         user,
         elements: { button },
       } = await setup();
-
       await user.click(button);
 
       await waitFor(() => {
         expect(requestBody).toEqual({
           username: 'username',
           email: 'email@email.com',
-          password: '123password',
+          password: '123Password',
         });
       });
     });
