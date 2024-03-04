@@ -1,47 +1,81 @@
 <template>
-  <h1>Sign Up</h1>
+  <div class="col-lg-6 offset-lg-3 col-md-8 offset-lg-2">
+    <form
+      class="card"
+      @submit="submit"
+    >
+      <div class="card-header text-center">
+        <h1>Sign Up</h1>
+      </div>
 
-  <div>
-    <label for="username">Username</label>
-    <input
-      type="text"
-      id="username"
-      v-model="form.username"
-    />
+      <div class="card-body">
+        <div class="mb-3">
+          <label
+            class="form-label"
+            for="username"
+            >Username</label
+          >
+          <input
+            class="form-control"
+            type="text"
+            id="username"
+            v-model="form.username"
+          />
+        </div>
+
+        <div>
+          <label
+            class="form-label"
+            for="email"
+            >Email</label
+          >
+          <input
+            class="form-control"
+            type="text"
+            id="email"
+            v-model="form.email"
+          />
+        </div>
+
+        <div>
+          <label
+            class="form-label"
+            for="password"
+            >Password</label
+          >
+          <input
+            class="form-control"
+            type="password"
+            id="password"
+            v-model="form.password"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label
+            class="form-label"
+            for="confirmPassword"
+            >Confirm Password</label
+          >
+          <input
+            class="form-control"
+            type="password"
+            id="confirmPassword"
+            v-model="form.confirmPassword"
+          />
+        </div>
+
+        <div class="text-center">
+          <button
+            class="btn btn-primary"
+            :disabled="isDisabled"
+            type="submit"
+            >Sign up</button
+          >
+        </div>
+      </div>
+    </form>
   </div>
-
-  <div>
-    <label for="email">Email</label>
-    <input
-      type="text"
-      id="email"
-      v-model="form.email"
-    />
-  </div>
-
-  <div>
-    <label for="password">Password</label>
-    <input
-      type="password"
-      id="password"
-      v-model="form.password"
-    />
-  </div>
-
-  <div>
-    <label for="confirmPassword">Confirm Password</label>
-    <input
-      type="password"
-      id="confirmPassword"
-      v-model="form.confirmPassword"
-    />
-  </div>
-
-  <button
-    :disabled="isDisabled"
-    @click="submit"
-    >Sign up</button
-  >
 </template>
 
 <script setup lang="ts">
