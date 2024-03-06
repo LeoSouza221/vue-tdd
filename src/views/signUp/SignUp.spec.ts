@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import SignUp from './SignUp.vue';
 // import axios from 'axios';
 import { setupServer } from 'msw/node';
-import { HttpResponse, http } from 'msw';
+import { HttpResponse, delay, http } from 'msw';
 import { afterAll, beforeAll } from 'vitest';
 
 interface UserForm {
@@ -18,12 +18,13 @@ const server = setupServer(
   http.post('/api/v1/users', async ({ request }) => {
     requestBody = (await request.json()) as UserForm;
     counter += 1;
-    return HttpResponse.json({});
+    return HttpResponse.json({ message: 'User create with success' });
   }),
 );
 
 beforeEach(() => {
   counter = 0;
+  server.resetHandlers();
 });
 
 beforeAll(() => server.listen());
@@ -105,6 +106,18 @@ describe('Sign Up', () => {
     expect(button).toBeDisabled();
   });
 
+  it('has Sign up spinner is disabled', () => {
+    render(SignUp);
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('has Sign up alert is disabled', () => {
+    render(SignUp);
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   describe('when user set same value to password input', () => {
     it('enable submit button', async () => {
       const user = userEvent.setup();
@@ -150,6 +163,62 @@ describe('Sign Up', () => {
 
         await waitFor(() => {
           expect(counter).toBe(1);
+        });
+      });
+
+      it('displays spinner', async () => {
+        server.use(
+          http.post('/api/v1/users', async () => {
+            await delay('infinite');
+            return HttpResponse.json({});
+          }),
+        );
+        const {
+          user,
+          elements: { button },
+        } = await setup();
+        await user.click(button);
+        expect(screen.getByRole('status')).toBeInTheDocument();
+      });
+
+      it('displays alert', async () => {
+        const {
+          user,
+          elements: { button },
+        } = await setup();
+
+        await user.click(button);
+
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+
+      describe('when success response is received', () => {
+        it('display success message', async () => {
+          const {
+            user,
+            elements: { button },
+          } = await setup();
+
+          await user.click(button);
+
+          const text = await screen.findByText('User create with success');
+
+          expect(text).toBeInTheDocument();
+        });
+
+        it('hide form', async () => {
+          const {
+            user,
+            elements: { button },
+          } = await setup();
+
+          const form = screen.getByTestId('form-sign-up');
+
+          await user.click(button);
+
+          await waitFor(() => {
+            expect(form).not.toBeInTheDocument();
+          });
         });
       });
     });

@@ -1,8 +1,10 @@
 <template>
   <div class="col-lg-6 offset-lg-3 col-md-8 offset-lg-2">
     <form
+      v-if="!successMessage"
       class="card"
       @submit.prevent="submit"
+      data-testId="form-sign-up"
     >
       <div class="card-header text-center">
         <h1>Sign Up</h1>
@@ -65,17 +67,36 @@
           />
         </div>
 
-        <div class="text-center">
+        <div class="text-center mb-3">
           <button
             :disabled="isDisabled || apiRequest"
             class="btn btn-primary"
             type="submit"
           >
+            <span
+              v-if="apiRequest"
+              class="spinner-border spinner-border-sm"
+              role="status"
+            ></span>
             Sign up
           </button>
         </div>
+        <div
+          v-if="hasError"
+          class="alert alert-danger"
+          role="alert"
+        >
+          Unexpected error occurred, please try again
+        </div>
       </div>
     </form>
+    <div
+      v-if="successMessage"
+      class="alert alert-success"
+      role="alert"
+    >
+      {{ successMessage }}
+    </div>
   </div>
 </template>
 
@@ -84,6 +105,8 @@ import axios from 'axios';
 import { computed, reactive, ref } from 'vue';
 
 const apiRequest = ref(false);
+const hasError = ref(false);
+const successMessage = ref();
 const form = reactive({
   password: '',
   confirmPassword: '',
@@ -95,10 +118,22 @@ const isDisabled = computed(() => {
   return form.password || form.confirmPassword ? form.password !== form.confirmPassword : true;
 });
 
-const submit = () => {
-  apiRequest.value = true;
-  const { confirmPassword, ...body } = form;
+const submit = async () => {
+  try {
+    apiRequest.value = true;
+    const { confirmPassword, ...body } = form;
 
-  axios.post('/api/v1/users', body);
+    const response = await axios.post('/api/v1/users', body);
+
+    if (response?.data) {
+      const { data } = response;
+      successMessage.value = data.message;
+      hasError.value = false;
+    }
+  } catch (apiError) {
+    hasError.value = true;
+  } finally {
+    apiRequest.value = false;
+  }
 };
 </script>
