@@ -119,10 +119,10 @@ const isDisabled = computed(() => {
 });
 
 const submit = async () => {
+  apiRequest.value = true;
+  hasError.value = false;
+  const { confirmPassword, ...body } = form;
   try {
-    apiRequest.value = true;
-    const { confirmPassword, ...body } = form;
-
     const response = await axios.post('/api/v1/users', body);
 
     if (response?.data) {
