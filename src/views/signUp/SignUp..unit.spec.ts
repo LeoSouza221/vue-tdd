@@ -128,7 +128,7 @@ describe('Sign Up', () => {
       });
 
       describe('when user submits again', () => {
-        it.only('hides error when api request is progress', async () => {
+        it('hides error when api request is progress', async () => {
           (axios.post as jest.Mock).mockRejectedValueOnce({}).mockResolvedValue({ data: {} });
           const {
             user,
@@ -142,6 +142,27 @@ describe('Sign Up', () => {
             expect(text).not.toBeInTheDocument();
           });
         });
+      });
+
+      it('display username error message', async () => {
+        (axios.post as jest.Mock).mockRejectedValue({
+          response: {
+            status: 400,
+            data: {
+              validationErrors: {
+                username: 'Username cannot be null',
+              },
+            },
+          },
+        });
+
+        const {
+          user,
+          elements: { button },
+        } = await setup();
+        await user.click(button);
+        const error = await screen.findByText('Username cannot be null');
+        expect(error).toBeInTheDocument();
       });
     });
   });

@@ -1,3 +1,48 @@
+<script setup lang="ts">
+import { AppInput } from '@/components';
+import axios from 'axios';
+import { computed, reactive, ref } from 'vue';
+
+const apiRequest = ref(false);
+const hasError = ref(false);
+const successMessage = ref();
+const errors = ref({
+  username: '',
+});
+const form = reactive({
+  password: '',
+  confirmPassword: '',
+  email: '',
+  username: '',
+});
+
+const isDisabled = computed(() => {
+  return form.password || form.confirmPassword ? form.password !== form.confirmPassword : true;
+});
+
+const submit = async () => {
+  apiRequest.value = true;
+  hasError.value = false;
+  const { confirmPassword, ...body } = form;
+  try {
+    const response = await axios.post('/api/v1/users', body);
+
+    if (response?.data) {
+      const { data } = response;
+      successMessage.value = data.message;
+      hasError.value = false;
+    }
+  } catch (apiError) {
+    if (apiError.response?.status === 400) {
+      errors.value = apiError.response.data.validationErrors;
+    }
+    hasError.value = true;
+  } finally {
+    apiRequest.value = false;
+  }
+};
+</script>
+
 <template>
   <div class="col-lg-6 offset-lg-3 col-md-8 offset-lg-2">
     <form
@@ -11,7 +56,7 @@
       </div>
 
       <div class="card-body">
-        <div class="mb-3">
+        <!-- <div class="mb-3">
           <label
             class="form-label"
             for="username"
@@ -23,7 +68,14 @@
             id="username"
             v-model="form.username"
           />
-        </div>
+          <span>{{ errors?.username }}</span>
+        </div> -->
+        <AppInput
+          v-model="form.username"
+          id="username"
+          label="Username"
+          :help="errors.username"
+        />
 
         <div class="mb-3">
           <label
@@ -99,41 +151,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import axios from 'axios';
-import { computed, reactive, ref } from 'vue';
-
-const apiRequest = ref(false);
-const hasError = ref(false);
-const successMessage = ref();
-const form = reactive({
-  password: '',
-  confirmPassword: '',
-  email: '',
-  username: '',
-});
-
-const isDisabled = computed(() => {
-  return form.password || form.confirmPassword ? form.password !== form.confirmPassword : true;
-});
-
-const submit = async () => {
-  apiRequest.value = true;
-  hasError.value = false;
-  const { confirmPassword, ...body } = form;
-  try {
-    const response = await axios.post('/api/v1/users', body);
-
-    if (response?.data) {
-      const { data } = response;
-      successMessage.value = data.message;
-      hasError.value = false;
-    }
-  } catch (apiError) {
-    hasError.value = true;
-  } finally {
-    apiRequest.value = false;
-  }
-};
-</script>
